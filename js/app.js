@@ -146,14 +146,16 @@ class LayoutBird extends Layout{
         this.keyBind()
         this.timer=setInterval(()=>{
             this.clear();
-            let f=Math.ceil(this.times/12)
-            this.cutPosition.x=36*f;
-            this.cutPosition.x%=108;
-
-
+            let f=0
             if(this.flydirection){
                 this.flyUp()
+                f=Math.ceil(this.times/6)
+            }else{
+                f=Math.ceil(this.times/12)
             }
+
+            this.cutPosition.x=36*f;
+            this.cutPosition.x%=108;
             this.gravity()
 
 
