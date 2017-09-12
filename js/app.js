@@ -83,6 +83,7 @@ class Layout{
 class LayoutGround extends Layout{
     constructor(container,index,size,picSize){
         super(container,index,size,picSize)
+        this.score=0
     }
     scroll(){
         this.clear();
@@ -97,19 +98,26 @@ class LayoutGround extends Layout{
         //     this.position.x%=24;
         //     this.draw()
         // },1000/30)
+        this.ctx.font = "bold 15px Arial";
+        this.ctx.fillStyle = "#FFFFFF";
+        this.score++;
+        this.ctx.fillText((this.score/60).toFixed(2)+''+'s', 10, 20);
+
     }
+
 }
 class LayoutPipe extends Layout{
     constructor(container,index,size,picSize){
         super(container,index,size,picSize)
         this.scrollSpeed=5
+
     }
-    scroll(){
+    scroll(y){
         this.clear();
         this.position.x-=this.scrollSpeed;
         if(this.position.x<=-52){
             this.position.x=288
-            this.position.y=Math.random()*100+200
+            this.position.y=y||Math.random()*100+200
         }
         this.draw()
         // this.timer=setInterval(()=>{
@@ -121,6 +129,7 @@ class LayoutPipe extends Layout{
         //     }
         //     this.draw()
         // },1000/60)
+        return true
     }
     hitCheck(o2,o1=this){
         let {x:x2,y:y2}=o2.position,{w:w2,h:h2}=o2.objSize;
@@ -234,6 +243,8 @@ class LayoutBird extends Layout{
 class Scene{
     constructor(container){
         this.times=0
+        this.passZone=80
+        this.pY=getRandom(100,200)
         this.bgImg=createImgObj('./images/bg.png')
         this.container=container
         this.bgImg.onload=()=>{
@@ -260,29 +271,49 @@ class Scene{
         this.pipeImg.onload=()=>{
             let pipeLayout=new LayoutPipe(this.container,1,{w:288,h:384},{w:52,h:320})
             this.pipeLayout=pipeLayout
-            pipeLayout.draw(this.pipeImg,{x:288,y:150})
+            pipeLayout.draw(this.pipeImg,{x:288,y:this.passZone+this.pY})
+        }
+
+        this.pipeImg2=createImgObj('./images/tube1.png')
+        this.pipeImg2.onload=()=>{
+            let pipeLayout=new LayoutPipe(this.container,1,{w:288,h:384},{w:52,h:320})
+            this.pipeLayout2=pipeLayout
+            pipeLayout.draw(this.pipeImg2,{x:288,y:(320-this.pY)*-1})
         }
 
     }
 
     start(){
         this.timer=setInterval(()=>{
+            if(this.pipeLayout.hitCheck(this.birdLayout)){
+                //alert('GAME OVER')
+                clearInterval(this.timer)
 
+            }
+            if(this.pipeLayout2.hitCheck(this.birdLayout)){
+                //alert('GAME OVER')
+                clearInterval(this.timer)
 
+            }
+            let pY=this.pY;
+            //let passZone=[py,this.passZone+py]
             this.groundLayout.scroll()
-            this.pipeLayout.scroll()
+
+            this.pipeLayout2.scroll((320-pY)*-1)
+            if(this.pipeLayout.scroll(this.passZone+pY)){
+                this.pY=getRandom(100,200)
+            }
             this.birdLayout.fly(this.times)
 
-
-            if(this.pipeLayout.hitCheck(this.birdLayout)){
-                alert('GAME OVER')
-                clearInterval(this.timer)
-            }
             this.times++;
             this.times%=60;
+
         },1000/60)
 
        // this.pipeLayout.scroll()
         //this.birdLayout.fly()
     }
+}
+function getRandom(min,max) {
+    return Math.ceil(Math.random()*(max-min)+min)
 }
