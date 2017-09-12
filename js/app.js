@@ -87,12 +87,9 @@ class LayoutGround extends Layout{
         this.timer=setInterval(()=>{
             this.clear();
             let x=0;
-            //debugger
-            x=this.position.x;
-            x-=3;
-            x%=24;
 
-            this.position.x=x
+            this.position.x-=3;
+            this.position.x%=24;
             this.draw()
         },1000/30)
     }
@@ -104,25 +101,67 @@ class LayoutBird extends Layout{
             x:0,
             y:0
         }
+        this.times=0
+        this.v0=0
+        this.g=0.07;
+        this.flydirection=false
+        this.reverseG=0.25
     }
     draw(img=this.img,position=this.position){
         let {x,y}=position,{x:cx,y:cy}=this.cutPosition;
         this.img=img;
         this.position=position
         this.ctx.drawImage(img,cx,cy,36,26,x,y,36,26)
+
+
+    }
+    gravity(){
+        console.log(this.position.y)
+        if(this.position.y>=this.size.h-26-22){
+            debugger
+        }else{
+            this.v0+=this.g;
+            this.position.y+=this.v0+this.g/2
+        }
+
+    }
+    changeFly(way){
+        return (e)=>{
+            if(e.key==='w'){
+                this.flydirection=way
+            }
+
+        }
+
+    }
+    keyBind(){
+        window.addEventListener('keydown',this.changeFly(true))
+        window.addEventListener('keyup',this.changeFly(false))
+    }
+    flyUp(){
+        this.v0-=this.reverseG;
+        this.position.y+=this.v0-this.reverseG/2
     }
     fly(){
+        this.keyBind()
         this.timer=setInterval(()=>{
             this.clear();
-            let x=0;
-            debugger
-            x=this.cutPosition.x;
-            x+=36;
-            x%=108;
+            let f=Math.ceil(this.times/12)
+            this.cutPosition.x=36*f;
+            this.cutPosition.x%=108;
 
-            this.cutPosition.x=x
+
+            if(this.flydirection){
+                this.flyUp()
+            }
+            this.gravity()
+
+
+
             this.draw()
-        },1000/12)
+            this.times++;
+            this.times%=60;
+        },1000/60)
     }
 }
 class Scene{
@@ -142,16 +181,17 @@ class Scene{
             this.groundLayout=groundLayout
             groundLayout.draw(this.groundImg,{x:0,y:362})
         }
-
-
         this.birdImg=createImgObj('./images/bird.png')
         this.birdImg.onload=()=>{
             let birdLayout=new LayoutBird(this.container,2,{w:288,h:384})
             this.birdLayout=birdLayout
             birdLayout.draw(this.birdImg,{x:140,y:150})
         }
+
     }
+
     start(){
+
         this.groundLayout.scroll()
         this.birdLayout.fly()
     }
